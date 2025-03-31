@@ -260,10 +260,21 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
 
+        .anime-poster-container {
+            position: relative;
+            overflow: hidden;
+            height: 250px;
+        }
+
         .anime-poster {
             width: 100%;
-            height: 250px;
+            height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .anime-card:hover .anime-poster {
+            transform: scale(1.05);
         }
 
         .anime-info {
@@ -467,11 +478,17 @@
             width: 20px;
         }
 
-        .trending-poster {
+        .trending-poster-container {
             width: 50px;
             height: 70px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trending-poster {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 5px;
         }
 
         .trending-info {
@@ -585,10 +602,7 @@
 <body>
     <!-- Left Sidebar -->
     <div class="sidebar">
-        <div class="logo">
-            <img src="https://raw.githubusercontent.com/niyakipham/niyakipham.github.io/refs/heads/main/assets/kaguya.jpeg" alt="Logo">
-            <span>ANIPLAY</span>
-        </div>
+
         <nav class="nav">
             <a href="#" class="nav-item active">
                 <i class="fas fa-home"></i>
@@ -701,7 +715,7 @@
             </div>
             <div class="modal-body">
                 <div class="anime-detail">
-                    <img src="https://via.placeholder.com/250x350" alt="Anime Poster" class="anime-detail-poster" id="detailPoster">
+                    <div class="anime-detail-poster" id="detailPoster"></div>
                     <div class="anime-detail-info">
                         <h1 class="anime-detail-title" id="detailTitle">Anime Title</h1>
                         <div class="anime-detail-meta">
@@ -800,6 +814,63 @@
             renderAnime();
         }
 
+        // Fetch anime cover image from AniList
+        async function fetchAnimeCoverImage(title) {
+            try {
+                // GraphQL query to get anime info from AniList
+                const query = `
+                    query ($search: String) {
+                        Media(search: $search, type: ANIME) {
+                            coverImage {
+                                large
+                            }
+                            title {
+                                romaji
+                                english
+                                native
+                            }
+                            description
+                            episodes
+                            status
+                            seasonYear
+                        }
+                    }
+                `;
+                
+                const variables = {
+                    search: title
+                };
+                
+                const response = await fetch('https://graphql.anilist.co', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query,
+                        variables
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.data && data.data.Media) {
+                    return {
+                        coverImage: data.data.Media.coverImage.large,
+                        title: data.data.Media.title.romaji || data.data.Media.title.english || data.data.Media.title.native,
+                        description: data.data.Media.description,
+                        episodes: data.data.Media.episodes,
+                        status: data.data.Media.status,
+                        year: data.data.Media.seasonYear
+                    };
+                }
+            } catch (error) {
+                console.error('Error fetching from AniList:', error);
+            }
+            return null;
+        }
+
         // Render anime to the grid
         function renderAnime() {
             animeGrid.innerHTML = '';
@@ -816,30 +887,30 @@
             // Render all anime
             allAnime.forEach(name => {
                 const anime = groupedAnime[name];
-                animeGrid.appendChild(createAnimeCard(name, anime));
+                createAnimeCard(name, anime).then(card => animeGrid.appendChild(card));
             });
             
             // Render popular anime
             popularAnime.forEach(name => {
                 const anime = groupedAnime[name];
-                popularAnimeGrid.appendChild(createAnimeCard(name, anime));
+                createAnimeCard(name, anime).then(card => popularAnimeGrid.appendChild(card));
             });
             
             // Render trending anime
             trendingAnimeList.forEach((name, index) => {
                 const anime = groupedAnime[name];
-                trendingAnime.appendChild(createTrendingItem(name, anime, index + 1));
+                createTrendingItem(name, anime, index + 1).then(item => trendingAnime.appendChild(item));
             });
             
             // Render recent anime
             recentAnimeList.forEach((name, index) => {
                 const anime = groupedAnime[name];
-                recentAnime.appendChild(createTrendingItem(name, anime));
+                createTrendingItem(name, anime).then(item => recentAnime.appendChild(item));
             });
         }
 
         // Create anime card element
-        function createAnimeCard(name, episodes) {
+        async function createAnimeCard(name, episodes) {
             const card = document.createElement('div');
             card.className = 'anime-card';
             
@@ -849,7 +920,7 @@
             const bgColor = colors[colorIndex];
             
             card.innerHTML = `
-                <div style="background-color: ${bgColor}; height: 250px; display: flex; align-items: center; justify-content: center;">
+                <div class="anime-poster-container" style="background-color: ${bgColor}; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-play" style="font-size: 3rem; opacity: 0.7;"></i>
                 </div>
                 <div class="anime-info">
@@ -859,12 +930,28 @@
                 <div class="anime-badge">New</div>
             `;
             
+            // Try to fetch anime cover image from AniList
+            try {
+                const animeInfo = await fetchAnimeCoverImage(name);
+                if (animeInfo && animeInfo.coverImage) {
+                    const posterContainer = card.querySelector('.anime-poster-container');
+                    posterContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = animeInfo.coverImage;
+                    img.className = 'anime-poster';
+                    img.alt = name;
+                    posterContainer.appendChild(img);
+                }
+            } catch (error) {
+                console.error('Error loading anime cover:', error);
+            }
+            
             card.addEventListener('click', () => openAnimeModal(name));
             return card;
         }
 
         // Create trending anime item
-        function createTrendingItem(name, episodes, rank = null) {
+        async function createTrendingItem(name, episodes, rank = null) {
             const item = document.createElement('div');
             item.className = 'trending-item';
             
@@ -875,7 +962,7 @@
             
             item.innerHTML = `
                 ${rank ? `<span class="trending-rank">${rank}</span>` : ''}
-                <div style="background-color: ${bgColor}; width: 50px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                <div class="trending-poster-container" style="background-color: ${bgColor}; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-play" style="font-size: 1.5rem; opacity: 0.7;"></i>
                 </div>
                 <div class="trending-info">
@@ -884,12 +971,28 @@
                 </div>
             `;
             
+            // Try to fetch anime cover image from AniList
+            try {
+                const animeInfo = await fetchAnimeCoverImage(name);
+                if (animeInfo && animeInfo.coverImage) {
+                    const posterContainer = item.querySelector('.trending-poster-container');
+                    posterContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = animeInfo.coverImage;
+                    img.className = 'trending-poster';
+                    img.alt = name;
+                    posterContainer.appendChild(img);
+                }
+            } catch (error) {
+                console.error('Error loading anime cover:', error);
+            }
+            
             item.addEventListener('click', () => openAnimeModal(name));
             return item;
         }
 
         // Open anime modal with details
-        function openAnimeModal(name) {
+        async function openAnimeModal(name) {
             currentAnime = name;
             const episodes = groupedAnime[name];
             
@@ -897,15 +1000,10 @@
             modalTitle.textContent = name;
             detailTitle.textContent = name;
             
-            // Set anime details
+            // Set anime details (temporary)
             detailEpisodes.textContent = `${episodes.length} tập`;
             detailStatus.textContent = 'Đang phát';
-            
-            // Generate a random year between 2015-2023
-            const randomYear = 2015 + Math.floor(Math.random() * 9);
-            detailYear.textContent = randomYear;
-            
-            // Generate a placeholder description
+            detailYear.textContent = '2023';
             detailDescription.textContent = `"${name}" là một bộ anime hấp dẫn với cốt truyện đặc sắc và hình ảnh đẹp mắt. Bộ phim đã nhận được nhiều đánh giá tích cực từ khán giả và các nhà phê bình.`;
             
             // Generate a consistent color based on anime name
@@ -916,6 +1014,31 @@
             // Set placeholder poster with colored background
             detailPoster.style.backgroundColor = bgColor;
             detailPoster.innerHTML = '<i class="fas fa-play" style="font-size: 3rem; opacity: 0.7;"></i>';
+            
+            // Try to fetch anime details from AniList
+            try {
+                const animeInfo = await fetchAnimeCoverImage(name);
+                if (animeInfo) {
+                    // Update poster
+                    if (animeInfo.coverImage) {
+                        detailPoster.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = animeInfo.coverImage;
+                        img.className = 'anime-detail-poster';
+                        img.alt = name;
+                        detailPoster.appendChild(img);
+                    }
+                    
+                    // Update info
+                    if (animeInfo.title) detailTitle.textContent = animeInfo.title;
+                    if (animeInfo.description) detailDescription.textContent = animeInfo.description.replace(/<[^>]*>/g, '');
+                    if (animeInfo.episodes) detailEpisodes.textContent = `${animeInfo.episodes} tập`;
+                    if (animeInfo.status) detailStatus.textContent = convertStatus(animeInfo.status);
+                    if (animeInfo.year) detailYear.textContent = animeInfo.year;
+                }
+            } catch (error) {
+                console.error('Error loading anime details:', error);
+            }
             
             // Render episodes
             episodesList.innerHTML = '';
@@ -936,6 +1059,18 @@
             // Show modal
             animeModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
+        }
+
+        // Convert status from English to Vietnamese
+        function convertStatus(status) {
+            const statusMap = {
+                'FINISHED': 'Đã hoàn thành',
+                'RELEASING': 'Đang phát',
+                'NOT_YET_RELEASED': 'Sắp phát',
+                'CANCELLED': 'Đã hủy',
+                'HIATUS': 'Tạm ngừng'
+            };
+            return statusMap[status] || status;
         }
 
         // Play episode in iframe
