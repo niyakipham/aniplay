@@ -4,53 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniData - Modern Anime Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #00ff9d;
-            --secondary: #2b2b2b;
-            --background: #0a0a0a;
+            --secondary: #1e1e1e;
+            --background: #121212;
+            --card-bg: #252525;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
         }
 
         body {
             background: var(--background);
-            color: white;
+            color: var(--text);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
 
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
         .title {
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--primary);
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--primary), #00b3ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            font-weight: 800;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1.5rem 0.8rem 3rem;
+            border-radius: 50px;
+            border: none;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
         }
 
         .anime-list {
             display: grid;
             gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
 
         .anime-card {
-            background: var(--secondary);
-            border-radius: 10px;
-            padding: 1rem;
-            border: 1px solid var(--primary);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
-            transition: 0.3s;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .anime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 255, 157, 0.3);
         }
 
         .anime-header {
@@ -58,43 +113,55 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .anime-name {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
             color: var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
         }
 
         .episode-count {
             background: rgba(0, 255, 157, 0.1);
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 20px;
             border: 1px solid var(--primary);
+            font-size: 0.8rem;
+            margin-left: 1rem;
+            flex-shrink: 0;
         }
 
         .episodes-list {
             display: none;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(0, 255, 157, 0.2);
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.8rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .episode-item {
             background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
+            padding: 0.8rem;
             text-align: center;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.2s ease;
             border: 1px solid transparent;
+            font-size: 0.9rem;
         }
 
         .episode-item:hover {
             border-color: var(--primary);
             transform: translateY(-3px);
+            background: rgba(0, 255, 157, 0.1);
         }
 
         .video-container {
@@ -103,20 +170,22 @@
             left: 50%;
             transform: translate(-50%, -50%);
             width: 90%;
-            max-width: 1000px;
-            background: var(--secondary);
-            padding: 1rem;
-            border-radius: 10px;
+            max-width: 1100px;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
             z-index: 1000;
             display: none;
             border: 2px solid var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
         .video-iframe {
             width: 100%;
             height: 500px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            aspect-ratio: 16/9;
         }
 
         .overlay {
@@ -125,9 +194,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             z-index: 999;
+            backdrop-filter: blur(5px);
         }
 
         .close-btn {
@@ -135,8 +205,8 @@
             top: -15px;
             right: -15px;
             background: var(--primary);
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -144,13 +214,124 @@
             cursor: pointer;
             color: black;
             font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            opacity: 0.5;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            grid-column: 1 / -1;
+        }
+
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            margin: 0 5px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                margin-bottom: 2rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+                text-align: center;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .anime-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-iframe {
+                height: 300px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">AniData Library</h1>
-        <div class="anime-list" id="animeList"></div>
+        <header>
+            <h1 class="title">AniData Library</h1>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm anime...">
+            </div>
+        </header>
+        
+        <div class="anime-list" id="animeList">
+            <div class="loading">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+        </div>
     </div>
 
     <div class="overlay" id="overlay"></div>
@@ -161,6 +342,7 @@
 
     <script>
         let currentData = null;
+        let allAnimeData = null;
 
         async function fetchAnimeData() {
             try {
@@ -182,25 +364,44 @@
                     return acc;
                 }, {});
 
+                allAnimeData = grouped;
+                
                 if (JSON.stringify(grouped) !== JSON.stringify(currentData)) {
                     currentData = grouped;
                     renderAnimeList();
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                document.getElementById('animeList').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Không thể tải dữ liệu. Vui lòng thử lại sau.</p>
+                    </div>
+                `;
             }
         }
 
-        function renderAnimeList() {
+        function renderAnimeList(data = currentData) {
             const container = document.getElementById('animeList');
+            
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>Không tìm thấy anime phù hợp</p>
+                    </div>
+                `;
+                return;
+            }
+            
             container.innerHTML = '';
 
-            for (const [name, episodes] of Object.entries(currentData)) {
+            for (const [name, episodes] of Object.entries(data)) {
                 const animeCard = document.createElement('div');
                 animeCard.className = 'anime-card';
                 animeCard.innerHTML = `
                     <div class="anime-header">
-                        <span class="anime-name">${name}</span>
+                        <span class="anime-name" title="${name}">${name}</span>
                         <span class="episode-count">${episodes.length} tập</span>
                     </div>
                     <div class="episodes-list"></div>
@@ -230,13 +431,35 @@
             document.getElementById('videoFrame').src = videoLink;
             document.getElementById('videoContainer').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
         }
 
         function closeVideo() {
             document.getElementById('videoFrame').src = '';
             document.getElementById('videoContainer').style.display = 'none';
             document.getElementById('overlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderAnimeList(allAnimeData);
+                return;
+            }
+            
+            const filteredData = {};
+            
+            for (const [name, episodes] of Object.entries(allAnimeData)) {
+                if (name.toLowerCase().includes(searchTerm)) {
+                    filteredData[name] = episodes;
+                }
+            }
+            
+            renderAnimeList(filteredData);
+        });
 
         // Auto-update every 5 minutes
         setInterval(fetchAnimeData, 300000);
@@ -246,6 +469,13 @@
 
         // Close video when clicking overlay
         document.getElementById('overlay').onclick = closeVideo;
+
+        // Close video when pressing ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeVideo();
+            }
+        });
     </script>
 </body>
 </html>
