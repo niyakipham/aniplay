@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniData - Modern Anime Library</title>
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #2b2b2b;
+            --background: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .anime-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .anime-card {
+            background: var(--secondary);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
+            transition: 0.3s;
+        }
+
+        .anime-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 1rem;
+        }
+
+        .anime-name {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .episode-count {
+            background: rgba(0, 255, 157, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+        }
+
+        .episodes-list {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .episode-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .episode-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .video-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1000px;
+            background: var(--secondary);
+            padding: 1rem;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            border: 2px solid var(--primary);
+        }
+
+        .video-iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 999;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: var(--primary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: black;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">AniData Library</h1>
+        <div class="anime-list" id="animeList"></div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="video-container" id="videoContainer">
+        <div class="close-btn" onclick="closeVideo()">×</div>
+        <iframe class="video-iframe" id="videoFrame" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        let currentData = null;
+
+        async function fetchAnimeData() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/yushichivnllc/sxhas/refs/heads/main/anime.csv');
+                const csv = await response.text();
+                const data = csv.split('\n').slice(1).map(row => {
+                    const [name, episodes, link] = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    return {
+                        name: name.replace(/^"|"$/g, ''),
+                        episodes: episodes.replace(/^"|"$/g, ''),
+                        link: link.replace(/^"|"$/g, '')
+                    };
+                });
+
+                // Group anime by name
+                const grouped = data.reduce((acc, curr) => {
+                    if (!acc[curr.name]) acc[curr.name] = [];
+                    acc[curr.name].push(curr);
+                    return acc;
+                }, {});
+
+                if (JSON.stringify(grouped) !== JSON.stringify(currentData)) {
+                    currentData = grouped;
+                    renderAnimeList();
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function renderAnimeList() {
+            const container = document.getElementById('animeList');
+            container.innerHTML = '';
+
+            for (const [name, episodes] of Object.entries(currentData)) {
+                const animeCard = document.createElement('div');
+                animeCard.className = 'anime-card';
+                animeCard.innerHTML = `
+                    <div class="anime-header">
+                        <span class="anime-name">${name}</span>
+                        <span class="episode-count">${episodes.length} tập</span>
+                    </div>
+                    <div class="episodes-list"></div>
+                `;
+
+                const episodesList = animeCard.querySelector('.episodes-list');
+                episodes.forEach(ep => {
+                    const episodeItem = document.createElement('div');
+                    episodeItem.className = 'episode-item';
+                    episodeItem.textContent = `Tập ${ep.episodes}`;
+                    episodeItem.onclick = () => playVideo(ep.link);
+                    episodesList.appendChild(episodeItem);
+                });
+
+                animeCard.querySelector('.anime-header').onclick = () => {
+                    episodesList.style.display = episodesList.style.display === 'grid' ? 'none' : 'grid';
+                };
+
+                container.appendChild(animeCard);
+            }
+        }
+
+        function playVideo(link) {
+            const videoLink = link.replace('/file/d/', '/uc?export=view&id=')
+                                  .replace('/view', '');
+            
+            document.getElementById('videoFrame').src = videoLink;
+            document.getElementById('videoContainer').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeVideo() {
+            document.getElementById('videoFrame').src = '';
+            document.getElementById('videoContainer').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // Auto-update every 5 minutes
+        setInterval(fetchAnimeData, 300000);
+        
+        // Initial load
+        fetchAnimeData();
+
+        // Close video when clicking overlay
+        document.getElementById('overlay').onclick = closeVideo;
+    </script>
+</body>
+</html>
