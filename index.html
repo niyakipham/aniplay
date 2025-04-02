@@ -113,6 +113,13 @@
             background: linear-gradient(90deg, var(--primary-color), transparent);
             border-radius: 0 0 8px 8px;
         }
+        
+        /* Search highlight style */
+        .highlight {
+            background-color: rgba(255, 235, 59, 0.3);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="theme-light bg-[var(--bg-color)] text-[var(--text-color)]">
@@ -149,6 +156,14 @@
                             <i class="fas fa-film mr-2 text-indigo-500"></i> Danh sách Anime
                         </h2>
                         <span id="anime-count" class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">0</span>
+                    </div>
+                    
+                    <!-- Search Box -->
+                    <div class="relative mb-6">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" id="search-anime" class="bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-color)] text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5" placeholder="Tìm kiếm anime...">
                     </div>
                     
                     <div id="anime-list-container">
@@ -252,6 +267,7 @@
         // Global variables
         let animeData = {};
         let selectedAnime = null;
+        let allAnimeNames = [];
         
         // DOM elements
         const animeListContainer = document.getElementById('anime-list-container');
@@ -267,6 +283,7 @@
         const loadingContent = document.getElementById('loading-content');
         const refreshBtn = document.getElementById('refresh-btn');
         const animeCount = document.getElementById('anime-count');
+        const searchInput = document.getElementById('search-anime');
         
         // Fetch anime data from CSV
         async function fetchAnimeData() {
@@ -283,6 +300,7 @@
                 const headers = allRows[0].split(',').map(h => h.trim().replace(/"/g, ''));
                 
                 animeData = {};
+                allAnimeNames = [];
                 
                 // Process each row (skip header)
                 for (let i = 1; i < allRows.length; i++) {
@@ -319,6 +337,7 @@
                         // Group by anime name
                         if (!animeData[anime.name]) {
                             animeData[anime.name] = [];
+                            allAnimeNames.push(anime.name);
                         }
                         
                         animeData[anime.name].push({
@@ -340,8 +359,16 @@
             }
         }
         
-        // Render anime list
-        function renderAnimeList() {
+        // Highlight search terms in text
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return text;
+            
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+        
+        // Render anime list with optional search filter
+        function renderAnimeList(searchTerm = '') {
             loadingAnime.classList.add('hidden');
             
             if (Object.keys(animeData).length === 0) {
@@ -356,16 +383,23 @@
             }
             
             let html = '<div class="space-y-3">';
+            let displayedCount = 0;
             
-            Object.keys(animeData).sort().forEach(name => {
+            // Filter anime names based on search term
+            const filteredAnimeNames = allAnimeNames.filter(name => {
+                return name.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+            
+            filteredAnimeNames.sort().forEach(name => {
                 const episodes = animeData[name];
+                const highlightedName = highlightText(name, searchTerm);
                 
                 html += `
                     <div class="anime-card bg-[var(--card-color)] rounded-lg border border-[var(--border-color)] overflow-hidden transition-all cursor-pointer" 
                          data-anime="${name}" onclick="selectAnime('${name.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
-                                <h3 class="font-medium truncate">${name}</h3>
+                                <h3 class="font-medium truncate">${highlightedName}</h3>
                                 <span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">
                                     ${episodes.length} tập
                                 </span>
@@ -373,15 +407,39 @@
                         </div>
                     </div>
                 `;
+                displayedCount++;
             });
             
             html += '</div>';
             animeListContainer.innerHTML = html;
-            animeCount.textContent = Object.keys(animeData).length;
+            animeCount.textContent = displayedCount;
             
-            // Select first anime by default
-            if (Object.keys(animeData).length > 0 && !selectedAnime) {
-                selectAnime(Object.keys(animeData)[0]);
+            // Show message if no results found
+            if (displayedCount === 0 && searchTerm) {
+                animeListContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-search text-4xl mb-4 text-indigo-200"></i>
+                        <p>Không tìm thấy anime phù hợp với "${searchTerm}"</p>
+                    </div>
+                `;
+            }
+            
+            // Select first anime by default if no anime is selected
+            if (displayedCount > 0 && !selectedAnime) {
+                selectAnime(filteredAnimeNames[0]);
+            }
+            
+            // Maintain selection after search
+            if (selectedAnime && filteredAnimeNames.includes(selectedAnime)) {
+                document.querySelectorAll('.anime-card').forEach(card => {
+                    if (card.dataset.anime === selectedAnime) {
+                        card.classList.add('ring-2', 'ring-indigo-500');
+                        card.classList.remove('border-[var(--border-color)]');
+                    } else {
+                        card.classList.remove('ring-2', 'ring-indigo-500');
+                        card.classList.add('border-[var(--border-color)]');
+                    }
+                });
             }
         }
         
@@ -481,6 +539,11 @@
             
             // Set up refresh button
             refreshBtn.addEventListener('click', fetchAnimeData);
+            
+            // Set up search functionality
+            searchInput.addEventListener('input', (e) => {
+                renderAnimeList(e.target.value);
+            });
         });
 
         // Make functions available globally
