@@ -1,554 +1,654 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIPLAY</title>
+    <title>ANIPLAY ✨ Your Universe of Anime</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
         :root {
-            --primary-color: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-light: #f9fafb;
-            --bg-dark: #1a1a2e;
-            --card-light: #ffffff;
-            --card-dark: #16213e;
-            --text-light: #1f2937;
-            --text-dark: #f3f4f6;
-            --border-light: #e5e7eb;
-            --border-dark: #2d3748;
-            --accent-glow: 0 0 10px rgba(99, 102, 241, 0.5);
+            --primary: #818cf8; /* indigo-400 */
+            --primary-glow: #4f46e5; /* indigo-700 */
+            --secondary: #67e8f9; /* cyan-300 */
+
+            --dark-bg: #0F1020;
+            --dark-card: #181A2F;
+            --dark-card-secondary: #222543;
+            --dark-text: #E0E1FF;
+            --dark-text-muted: #9194bb;
+            --dark-border: #2A2E59;
+            --dark-border-hover: var(--primary);
+
+            --light-bg: #F5F5F9;
+            --light-card: #FFFFFF;
+            --light-card-secondary: #F0F0F8;
+            --light-text: #111827;
+            --light-text-muted: #6b7280;
+            --light-border: #e2e8f0;
+            --light-border-hover: var(--primary);
         }
-        
-        body {
+
+        .dark {
+            --bg-color: var(--dark-bg);
+            --card-color: var(--dark-card);
+            --card-color-secondary: var(--dark-card-secondary);
+            --text-color: var(--dark-text);
+            --text-color-muted: var(--dark-text-muted);
+            --border-color: var(--dark-border);
+            --border-color-hover: var(--dark-border-hover);
+        }
+
+        .light {
+            --bg-color: var(--light-bg);
+            --card-color: var(--light-card);
+            --card-color-secondary: var(--light-card-secondary);
+            --text-color: var(--light-text);
+            --text-color-muted: var(--light-text-muted);
+            --border-color: var(--light-border);
+            --border-color-hover: var(--light-border-hover);
+        }
+
+        body, html {
+            scroll-behavior: smooth;
             font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
-        
-        .theme-dark {
-            --bg-color: var(--bg-dark);
-            --card-color: var(--card-dark);
-            --text-color: var(--text-dark);
-            --border-color: var(--border-dark);
-        }
-        
-        .theme-light {
-            --bg-color: var(--bg-light);
-            --card-color: var(--card-light);
-            --text-color: var(--text-light);
-            --border-color: var(--border-light);
-        }
-        
-        .anime-card {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .anime-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--accent-glow);
-        }
-        
-        .anime-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(99, 102, 241, 0.1),
-                transparent
-            );
-            transform: rotate(45deg);
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        
-        .anime-card:hover::before {
-            opacity: 1;
-        }
-        
-        .episode-item:hover {
-            background-color: rgba(99, 102, 241, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .toggle-checkbox:checked {
-            right: 0;
-            background-color: var(--primary-color);
-        }
-        
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: var(--primary-hover);
-        }
-        
-        .loader {
-            border-top-color: var(--primary-color);
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .futuristic-border {
-            position: relative;
-        }
-        
-        .futuristic-border::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
             width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), transparent);
-            border-radius: 0 0 8px 8px;
+            height: 100vh;
+            background-color: var(--dark-bg);
+            background-image:
+                linear-gradient(var(--dark-border) 1px, transparent 1px),
+                linear-gradient(to right, var(--dark-border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.1;
         }
         
-        /* Search highlight style */
-        .highlight {
-            background-color: rgba(255, 235, 59, 0.3);
-            padding: 0 2px;
-            border-radius: 2px;
+        .light .bg-grid {
+             background-color: var(--light-bg);
+             background-image:
+                linear-gradient(var(--light-border) 1px, transparent 1px),
+                linear-gradient(to right, var(--light-border) 1px, transparent 1px);
+            opacity: 0.4;
+        }
+
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            mix-blend-mode: soft-light;
+        }
+        
+        .aurora__item {
+            position: absolute;
+            height: 80vh;
+            width: 80vh;
+            border-radius: 50%;
+            opacity: 0.3;
+            filter: blur(80px);
+            transition: all 0.3s ease;
+        }
+
+        .dark .aurora__item { opacity: 0.2; }
+        
+        .aurora__item:nth-of-type(1) {
+            top: 0;
+            right: 0;
+            background-image: radial-gradient(circle at center, #8a45fe 0%, #351f7d 80%);
+            animation: move-aurora-1 25s infinite linear;
+        }
+
+        .aurora__item:nth-of-type(2) {
+            top: 30vh;
+            left: 50%;
+            background-image: radial-gradient(circle at center, #00d2f8 0%, #001287 80%);
+            animation: move-aurora-2 20s infinite linear;
+        }
+
+        .aurora__item:nth-of-type(3) {
+            bottom: -30vh;
+            left: 0;
+            background-image: radial-gradient(circle at center, #3553ff 0%, #2f254b 80%);
+             animation: move-aurora-3 30s infinite linear;
+        }
+
+
+        @keyframes move-aurora-1 {
+            0% { transform: translate(-30%, -10%); }
+            50% { transform: translate(15%, 20%); }
+            100% { transform: translate(-30%, -10%); }
+        }
+        
+        @keyframes move-aurora-2 {
+            0% { transform: translate(10%, 20%); }
+            50% { transform: translate(-30%, -15%); }
+            100% { transform: translate(10%, 20%); }
+        }
+        @keyframes move-aurora-3 {
+            0% { transform: translate(20%, 0%); }
+            50% { transform: translate(-10%, 25%); }
+            100% { transform: translate(20%, 0%); }
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.05);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--dark-border);
+        }
+
+        .light .glassmorphism {
+             background: rgba(255, 255, 255, 0.4);
+             border-color: var(--light-border-hover);
+        }
+
+        #site-header.scrolled .glassmorphism {
+             border-color: transparent;
+             border-bottom: 1px solid var(--dark-border);
+             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .light #site-header.scrolled .glassmorphism {
+             border-bottom-color: var(--light-border);
+             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .fancy-button {
+            position: relative;
+            background-image: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
+        }
+
+        .fancy-button::before,
+        .fancy-button::after {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--primary-glow), var(--secondary), var(--primary), var(--secondary));
+            background-size: 400%;
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            z-index: -1;
+            animation: steam 20s linear infinite;
+            border-radius: 0.5rem;
+        }
+
+        .fancy-button::after {
+            filter: blur(50px);
+        }
+        @keyframes steam {
+            0% { background-position: 0 0; }
+            50% { background-position: 400% 0; }
+            100% { background-position: 0 0; }
+        }
+        
+
+        .theme-toggle-button {
+            --bar-color: var(--text-color);
+            color: var(--bar-color);
+            background-color: var(--bg-color);
+        }
+        .theme-toggle-button.toggled {
+            background-color: var(--card-color-secondary);
+        }
+        .light .theme-toggle-button.toggled {
+            background-color: var(--bg-color);
+        }
+
+        .anime-card-dynamic {
+            border: 1px solid var(--border-color);
+            background: linear-gradient(var(--card-color), var(--card-color)) padding-box,
+                        linear-gradient(145deg, transparent 35%, var(--primary), var(--secondary)) border-box;
+            background-color: var(--card-color);
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .episode-button-glow {
+            position: relative;
+            z-index: 1;
+        }
+
+        .episode-button-glow:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px 0 var(--primary);
+        }
+
+        .episode-button-glow::before {
+            content: "";
+            z-index: -1;
+            position: absolute;
+            inset: 0;
+            background-color: var(--card-color);
+            border-radius: inherit;
+        }
+
+         .episode-button-glow.active {
+            border-color: var(--primary);
+        }
+
+         .episode-button-glow.active::before {
+             background-color: color-mix(in srgb, var(--primary) 10%, transparent);
         }
     </style>
 </head>
-<body class="theme-light bg-[var(--bg-color)] text-[var(--text-color)]">
-    <header class="futuristic-border bg-[var(--card-color)] border-b border-[var(--border-color)]">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex justify-between items-center">
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                    <i class="fas fa-play-circle mr-2"></i>ANIPLAY
-                </h1>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center">
-                        <span class="mr-2 text-sm"><i class="fas fa-sun"></i></span>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
-                            <input type="checkbox" id="theme-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer"/>
-                            <label for="theme-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-200 cursor-pointer"></label>
-                        </div>
-                        <span class="text-sm"><i class="fas fa-moon"></i></span>
-                    </div>
-                    <button id="refresh-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center">
-                        <i class="fas fa-sync-alt mr-2"></i> Cập nhật
+
+<body class="transition-colors duration-500 ease-in-out">
+    <div class="bg-grid"></div>
+    <div class="aurora">
+        <div class="aurora__item"></div>
+        <div class="aurora__item"></div>
+        <div class="aurora__item"></div>
+    </div>
+    
+    <header id="site-header" class="sticky top-0 z-40 w-full transition-all duration-300">
+        <div class="px-6 py-4 glassmorphism">
+            <div class="mx-auto flex w-full max-w-7xl items-center justify-between">
+                <a href="#" class="flex items-center space-x-2">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <defs>
+                            <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: var(--primary-glow);"></stop>
+                                <stop offset="100%" style="stop-color: var(--secondary);"></stop>
+                            </linearGradient>
+                        </defs>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="url(#logo-gradient)" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="url(#logo-gradient)" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent tracking-tighter">ANIPLAY</h1>
+                </a>
+                
+                <div class="flex items-center gap-6">
+                    <label class="relative flex items-center">
+                        <input id="theme-toggle" type="checkbox" class="peer/toggle sr-only">
+                        <button class="relative rounded-full border border-[var(--border-color)] p-1.5 peer-focus-visible/toggle:outline peer-focus-visible/toggle:outline-2 peer-focus-visible/toggle:outline-[var(--primary-glow)] transition-all theme-toggle-button">
+                           <svg class="h-4 w-4 stroke-current dark:opacity-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 110-10a5 5 0 010 10z"></path></svg>
+                           <svg class="h-4 w-4 stroke-current absolute inset-1.5 opacity-0 dark:opacity-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646a9.003 9.003 0 0011.708 11.708z"></path></svg>
+                        </button>
+                    </label>
+
+                    <button id="refresh-btn" class="fancy-button font-bold text-white rounded-lg px-5 py-2.5 text-center text-sm transition-transform duration-300 hover:scale-105 active:scale-95">
+                        <span>
+                            <i class="fa-solid fa-arrows-rotate mr-2"></i>Cập Nhật
+                        </span>
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8">
-        <div class="flex flex-col lg:flex-row gap-6">
-            <!-- Anime List Section -->
-            <div class="w-full lg:w-1/3">
-                <div class="bg-[var(--card-color)] rounded-lg shadow-lg p-6 border border-[var(--border-color)]">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold flex items-center">
-                            <i class="fas fa-film mr-2 text-indigo-500"></i> Danh sách Anime
+
+    <main class="w-full max-w-7xl mx-auto px-6 py-12">
+        <div class="grid lg:grid-cols-3 gap-8">
+           
+            <div class="lg:col-span-1 space-y-6">
+                <div id="anime-list-section" class="scroll-reveal p-6 border-b-2 rounded-xl border-[var(--dark-border-hover)] bg-[var(--card-color)] transition-all">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-xl font-bold tracking-tight text-[var(--text-color)] flex items-center gap-3">
+                           <i class="fa-solid fa-list text-[var(--primary-glow)]"></i> Danh sách Anime
                         </h2>
-                        <span id="anime-count" class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">0</span>
+                         <span id="anime-count" class="font-semibold text-xs py-1 px-3 bg-[var(--card-color-secondary)] text-[var(--text-color)] rounded-full">0</span>
+                    </div>
+
+                    <div class="relative">
+                       <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fas fa-search text-[var(--text-color-muted)]"></i>
+                        </span>
+                        <input type="text" id="search-anime" placeholder="Tìm kiếm anime của bạn..." class="w-full pl-10 pr-4 py-3 bg-[var(--card-color-secondary)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition duration-300">
                     </div>
                     
-                    <!-- Search Box -->
-                    <div class="relative mb-6">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </div>
-                        <input type="text" id="search-anime" class="bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-color)] text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5" placeholder="Tìm kiếm anime...">
-                    </div>
-                    
-                    <div id="anime-list-container">
-                        <div id="loading-anime" class="flex justify-center py-10">
-                            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8"></div>
-                        </div>
+                    <div id="anime-list-container" class="mt-4 pr-1 max-h-[60vh] overflow-y-auto">
+                        <div id="loading-anime" class="flex justify-center items-center py-10 space-x-2">
+                             <div class="dot animate-loader-dot" style="animation-delay: 0s;"></div>
+                             <div class="dot animate-loader-dot" style="animation-delay: 0.1s;"></div>
+                             <div class="dot animate-loader-dot" style="animation-delay: 0.2s;"></div>
+                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Content Section -->
-            <div class="w-full lg:w-2/3">
-                <div class="bg-[var(--card-color)] rounded-lg shadow-lg p-6 border border-[var(--border-color)]">
-                    <!-- Selected Anime Info -->
-                    <div id="selected-anime-info" class="mb-6 hidden">
-                        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl">
-                                    <i class="fas fa-tv"></i>
-                                </div>
+
+            <div class="lg:col-span-2">
+                 <div id="main-content-area" class="bg-[var(--card-color)] scroll-reveal rounded-xl border border-[var(--border-color)]">
+                    
+                    <div id="selected-anime-info" class="p-6 border-b border-[var(--border-color)] hidden">
+                        <div class="flex items-center gap-4">
+                            <div class="h-20 w-20 flex-shrink-0 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-glow)] rounded-2xl flex items-center justify-center">
+                               <i class="fa-solid fa-film text-white text-3xl"></i>
                             </div>
-                            <div class="flex-grow">
-                                <h2 id="selected-anime-title" class="text-2xl font-bold"></h2>
-                                <div id="selected-anime-meta" class="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-list-ol mr-1"></i>
-                                        <span id="episode-count">0</span> tập
-                                    </span>
+                            <div>
+                                <h2 id="selected-anime-title" class="text-2xl lg:text-3xl font-extrabold tracking-tighter text-[var(--text-color)]"></h2>
+                                 <div id="selected-anime-meta" class="flex items-center space-x-3 text-sm text-[var(--text-color-muted)] mt-1">
+                                    <span class="flex items-center gap-1.5"><i class="fas fa-list-ol"></i> <span id="episode-count">0</span> Episodes</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Episode List -->
-                    <div id="episode-container" class="hidden">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center">
-                            <i class="fas fa-list mr-2 text-indigo-500"></i> Danh sách tập
-                        </h3>
-                        <div id="episode-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+
+                    <div id="episode-container" class="p-6 hidden">
+                         <div id="episode-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"></div>
                     </div>
-                    
-                    <!-- Player Section -->
-                    <div id="player-container" class="hidden mt-6">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center">
-                            <i class="fas fa-play mr-2 text-indigo-500"></i> Trình phát
-                        </h3>
-                        <div class="aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden shadow-lg">
-                            <iframe id="video-player" class="w-full h-[30rem]" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+
+                    <div id="player-container" class="px-6 pb-6 hidden">
+                        <div class="aspect-w-16 aspect-h-9 bg-[var(--bg-color)] rounded-lg overflow-hidden ring-1 ring-[var(--border-color)]">
+                            <iframe id="video-player" class="w-full h-[30rem] lg:h-[36rem]" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
                         </div>
                     </div>
-                    
-                    <!-- Empty State -->
-                    <div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
-                        <div class="w-20 h-20 mb-4 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                            <i class="fas fa-hands-helping text-3xl text-indigo-500"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">Chọn anime để xem</h3>
-                        <p class="text-gray-500 dark:text-gray-400 max-w-md">Chọn một anime từ danh sách bên trái để xem thông tin và danh sách tập phim.</p>
+
+                    <div id="empty-state" class="p-10 flex flex-col items-center justify-center text-center">
+                         <div class="w-24 h-24 mb-6 rounded-full bg-[var(--card-color-secondary)] flex items-center justify-center">
+                             <i class="fas fa-paper-plane text-4xl text-[var(--primary)]"></i>
+                         </div>
+                        <h3 class="text-xl font-bold mb-2">Bắt đầu khám phá</h3>
+                        <p class="text-[var(--text-color-muted)] max-w-sm">Hãy chọn một bộ phim từ danh sách bên cạnh để bắt đầu cuộc phiêu lưu của bạn!</p>
                     </div>
-                    
-                    <!-- Loading State -->
-                    <div id="loading-content" class="flex justify-center py-10 hidden">
-                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8"></div>
+
+                    <div id="loading-content" class="p-10 flex justify-center items-center space-x-2 hidden">
+                         <div class="dot animate-loader-dot" style="animation-delay: 0s;"></div>
+                         <div class="dot animate-loader-dot" style="animation-delay: 0.1s;"></div>
+                         <div class="dot animate-loader-dot" style="animation-delay: 0.2s;"></div>
                     </div>
                 </div>
             </div>
+
         </div>
     </main>
-
-    <footer class="bg-[var(--card-color)] border-t border-[var(--border-color)] py-6 mt-8">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>© 2023 AnimeHub - Tất cả anime được cung cấp miễn phí bởi cộng đồng</p>
+    
+     <footer class="mt-16 py-6 border-t border-[var(--border-color)] bg-transparent">
+        <div class="w-full max-w-7xl mx-auto px-6 text-center text-sm text-[var(--text-color-muted)]">
+            <p>© 2025 Aniplay. All content provided by the community.</p>
         </div>
     </footer>
-
+    
     <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
         
-        // Check for saved user preference or use preferred color scheme
-        if (localStorage.getItem('theme') === 'dark' || 
-            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            htmlElement.classList.add('theme-dark');
-            themeToggle.checked = true;
-        } else {
-            htmlElement.classList.add('theme-light');
-            themeToggle.checked = false;
-        }
-        
-        themeToggle.addEventListener('change', function() {
-            if (this.checked) {
-                htmlElement.classList.replace('theme-light', 'theme-dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                htmlElement.classList.replace('theme-dark', 'theme-light');
-                localStorage.setItem('theme', 'light');
-            }
-        });
-        
-        // Global variables
-        let animeData = {};
-        let selectedAnime = null;
-        let allAnimeNames = [];
-        
-        // DOM elements
-        const animeListContainer = document.getElementById('anime-list-container');
-        const loadingAnime = document.getElementById('loading-anime');
-        const selectedAnimeInfo = document.getElementById('selected-anime-info');
-        const selectedAnimeTitle = document.getElementById('selected-anime-title');
-        const episodeCount = document.getElementById('episode-count');
-        const episodeContainer = document.getElementById('episode-container');
-        const episodeList = document.getElementById('episode-list');
-        const playerContainer = document.getElementById('player-container');
-        const videoPlayer = document.getElementById('video-player');
-        const emptyState = document.getElementById('empty-state');
-        const loadingContent = document.getElementById('loading-content');
-        const refreshBtn = document.getElementById('refresh-btn');
-        const animeCount = document.getElementById('anime-count');
-        const searchInput = document.getElementById('search-anime');
-        
-        // Fetch anime data from CSV
-        async function fetchAnimeData() {
-            try {
-                loadingAnime.classList.remove('hidden');
-                animeListContainer.innerHTML = '';
-                animeListContainer.appendChild(loadingAnime);
-                
-                const response = await fetch('https://raw.githubusercontent.com/yushichivnllc/sxhas/refs/heads/main/anime.csv');
-                const csvData = await response.text();
-                
-                // Parse CSV data
-                const allRows = csvData.split('\n');
-                const headers = allRows[0].split(',').map(h => h.trim().replace(/"/g, ''));
-                
-                animeData = {};
-                allAnimeNames = [];
-                
-                // Process each row (skip header)
-                for (let i = 1; i < allRows.length; i++) {
-                    const row = allRows[i];
-                    if (!row) continue;
-                    
-                    // Handle CSV rows with commas in values
-                    const values = [];
-                    let inQuotes = false;
-                    let currentValue = '';
-                    
-                    for (let j = 0; j < row.length; j++) {
-                        const char = row[j];
-                        
-                        if (char === '"') {
-                            inQuotes = !inQuotes;
-                        } else if (char === ',' && !inQuotes) {
-                            values.push(currentValue.trim());
-                            currentValue = '';
-                        } else {
-                            currentValue += char;
-                        }
-                    }
-                    values.push(currentValue.trim());
-                    
-                    // Extract data
-                    if (values.length >= headers.length) {
-                        const anime = {
-                            name: values[0]?.replace(/"/g, '') || 'Unknown',
-                            episode: values[1]?.replace(/"/g, '') || '0',
-                            link: values[2]?.replace(/"/g, '') || '#'
-                        };
-                        
-                        // Group by anime name
-                        if (!animeData[anime.name]) {
-                            animeData[anime.name] = [];
-                            allAnimeNames.push(anime.name);
-                        }
-                        
-                        animeData[anime.name].push({
-                            episode: anime.episode,
-                            link: anime.link
-                        });
-                    }
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const siteHeader = document.getElementById('site-header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 10) {
+                    siteHeader.classList.add('scrolled');
+                } else {
+                    siteHeader.classList.remove('scrolled');
                 }
-                
-                renderAnimeList();
-            } catch (error) {
-                console.error('Error fetching anime data:', error);
-                animeListContainer.innerHTML = `
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
-                        <p class="font-medium">Lỗi tải dữ liệu</p>
-                        <p>Không thể tải danh sách anime. Vui lòng thử lại sau.</p>
-                    </div>
-                `;
-            }
-        }
-        
-        // Highlight search terms in text
-        function highlightText(text, searchTerm) {
-            if (!searchTerm) return text;
-            
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
-        }
-        
-        // Render anime list with optional search filter
-        function renderAnimeList(searchTerm = '') {
-            loadingAnime.classList.add('hidden');
-            
-            if (Object.keys(animeData).length === 0) {
-                animeListContainer.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-folder-open text-4xl mb-4 text-indigo-200"></i>
-                        <p>Không có anime nào được tìm thấy</p>
-                    </div>
-                `;
-                animeCount.textContent = '0';
-                return;
-            }
-            
-            let html = '<div class="space-y-3">';
-            let displayedCount = 0;
-            
-            // Filter anime names based on search term
-            const filteredAnimeNames = allAnimeNames.filter(name => {
-                return name.toLowerCase().includes(searchTerm.toLowerCase());
             });
+
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.documentElement;
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    body.classList.add('dark');
+                    body.classList.remove('light');
+                    themeToggle.checked = true;
+                } else {
+                    body.classList.remove('dark');
+                    body.classList.add('light');
+                    themeToggle.checked = false;
+                }
+            };
             
-            filteredAnimeNames.sort().forEach(name => {
-                const episodes = animeData[name];
-                const highlightedName = highlightText(name, searchTerm);
-                
-                html += `
-                    <div class="anime-card bg-[var(--card-color)] rounded-lg border border-[var(--border-color)] overflow-hidden transition-all cursor-pointer" 
-                         data-anime="${name}" onclick="selectAnime('${name.replace(/'/g, "\\'")}')">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-medium truncate">${highlightedName}</h3>
-                                <span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">
-                                    ${episodes.length} tập
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                displayedCount++;
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (prefersDark) {
+                applyTheme('dark');
+            } else {
+                 applyTheme('light');
+            }
+            
+
+            themeToggle.addEventListener('change', function() {
+                const theme = this.checked ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+                applyTheme(theme);
             });
-            
-            html += '</div>';
-            animeListContainer.innerHTML = html;
-            animeCount.textContent = displayedCount;
-            
-            // Show message if no results found
-            if (displayedCount === 0 && searchTerm) {
-                animeListContainer.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-search text-4xl mb-4 text-indigo-200"></i>
-                        <p>Không tìm thấy anime phù hợp với "${searchTerm}"</p>
-                    </div>
-                `;
-            }
-            
-            // Select first anime by default if no anime is selected
-            if (displayedCount > 0 && !selectedAnime) {
-                selectAnime(filteredAnimeNames[0]);
-            }
-            
-            // Maintain selection after search
-            if (selectedAnime && filteredAnimeNames.includes(selectedAnime)) {
-                document.querySelectorAll('.anime-card').forEach(card => {
-                    if (card.dataset.anime === selectedAnime) {
-                        card.classList.add('ring-2', 'ring-indigo-500');
-                        card.classList.remove('border-[var(--border-color)]');
+
+            const scrollRevealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
                     } else {
-                        card.classList.remove('ring-2', 'ring-indigo-500');
-                        card.classList.add('border-[var(--border-color)]');
+                        entry.target.classList.remove('visible');
+                    }
+                });
+            }, {
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            document.querySelectorAll('.scroll-reveal').forEach(el => scrollRevealObserver.observe(el));
+
+            const ANIME_DATA_URL = 'https://raw.githubusercontent.com/yushichivnllc/sxhas/refs/heads/main/anime.csv';
+            let animeData = {};
+            let selectedAnimeName = null;
+            let allAnimeList = [];
+
+            const animeListContainer = document.getElementById('anime-list-container');
+            const animeCountEl = document.getElementById('anime-count');
+            const searchInput = document.getElementById('search-anime');
+            const loadingAnimeEl = document.getElementById('loading-anime');
+            
+            const selectedAnimeInfoEl = document.getElementById('selected-anime-info');
+            const selectedAnimeTitleEl = document.getElementById('selected-anime-title');
+            const episodeCountEl = document.getElementById('episode-count');
+            
+            const episodeContainerEl = document.getElementById('episode-container');
+            const episodeListEl = document.getElementById('episode-list');
+            
+            const playerContainerEl = document.getElementById('player-container');
+            const videoPlayerEl = document.getElementById('video-player');
+
+            const emptyStateEl = document.getElementById('empty-state');
+            const loadingContentEl = document.getElementById('loading-content');
+            
+            const refreshBtn = document.getElementById('refresh-btn');
+
+            const parseCSV = (text) => {
+                const data = {};
+                const list = [];
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                
+                lines.slice(1).forEach(line => {
+                    let inQuotes = false;
+                    let value = '';
+                    const values = [];
+                    for(let i = 0; i < line.length; i++) {
+                       if(line[i] === '"') inQuotes = !inQuotes;
+                       else if(line[i] === ',' && !inQuotes) {
+                         values.push(value.trim().replace(/^"|"$/g, ''));
+                         value = '';
+                       } else value += line[i];
+                    }
+                    values.push(value.trim().replace(/^"|"$/g, ''));
+
+                    const name = values[0];
+                    const episode = values[1];
+                    const link = values[2];
+
+                    if (name) {
+                         if (!data[name]) {
+                             data[name] = { name, episodes: [] };
+                             list.push({name});
+                         }
+                         data[name].episodes.push({ episode, link });
+                    }
+                });
+                return {data, list};
+            };
+            
+            const renderAnimeList = (filterTerm = '') => {
+                 while(animeListContainer.firstChild) animeListContainer.firstChild.remove();
+                 
+                let filteredList = filterTerm ? allAnimeList.filter(anime => anime.name.toLowerCase().includes(filterTerm.toLowerCase())) : allAnimeList;
+
+                filteredList.sort((a,b) => a.name.localeCompare(b.name));
+
+                 animeCountEl.textContent = filteredList.length;
+
+                if(filteredList.length === 0) {
+                     animeListContainer.innerHTML = `<div class="p-6 text-center text-[var(--text-color-muted)]">Không tìm thấy anime.</div>`;
+                     return;
+                }
+                 
+                const fragment = document.createDocumentFragment();
+                filteredList.forEach(animeItem => {
+                    const card = document.createElement('div');
+                    card.className = `anime-card-dynamic relative p-4 rounded-xl cursor-pointer transition-all duration-300 transform-gpu hover:-translate-y-1 hover:shadow-2xl hover:shadow-[var(--primary)]/20`;
+                    card.dataset.animeName = animeItem.name;
+                    card.innerHTML = `
+                         <div class="flex items-center justify-between">
+                             <h3 class="font-bold text-[var(--text-color)] text-sm line-clamp-1">${animeItem.name}</h3>
+                              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-[var(--card-color-secondary)] text-[var(--text-color-muted)]">${animeData[animeItem.name].episodes.length} tập</span>
+                         </div>`;
+                    card.onclick = () => selectAnime(animeItem.name);
+                    fragment.appendChild(card);
+                });
+                
+                animeListContainer.appendChild(fragment);
+
+                if (selectedAnimeName) {
+                    updateActiveAnimeCard(selectedAnimeName);
+                } else if (filteredList.length > 0) {
+                    selectAnime(filteredList[0].name);
+                }
+            };
+
+            const selectAnime = (animeName) => {
+                 selectedAnimeName = animeName;
+                 const anime = animeData[animeName];
+
+                showLoadingState(true);
+
+                 setTimeout(() => {
+                     selectedAnimeTitleEl.textContent = anime.name;
+                     episodeCountEl.textContent = anime.episodes.length;
+                     
+                     anime.episodes.sort((a, b) => (parseFloat(a.episode) || 0) - (parseFloat(b.episode) || 0));
+
+                     let episodeHTML = '';
+                     anime.episodes.forEach(ep => {
+                          episodeHTML += `<div onclick="playEpisode('${encodeURIComponent(ep.link)}')" class="episode-button-glow p-2 text-sm text-center bg-gradient-to-r from-[var(--card-color-secondary)] to-[var(--bg-color)] text-[var(--text-color-muted)] hover:text-[var(--text-color)] border border-[var(--border-color)] transition-all cursor-pointer font-semibold rounded-lg">${ep.episode}</div>`
+                     });
+                     
+                     episodeListEl.innerHTML = episodeHTML;
+                     
+                     emptyStateEl.style.display = 'none';
+                     playerContainerEl.style.display = 'none';
+                     videoPlayerEl.src = 'about:blank';
+                     
+                     selectedAnimeInfoEl.style.display = 'flex';
+                     episodeContainerEl.style.display = 'block';
+
+                     showLoadingState(false);
+                 }, 300);
+
+                 updateActiveAnimeCard(animeName);
+            };
+
+            const updateActiveAnimeCard = (animeName) => {
+                 const allCards = animeListContainer.querySelectorAll('.anime-card-dynamic');
+                 allCards.forEach(card => {
+                    if(card.dataset.animeName === animeName) {
+                       card.classList.add('ring-2', 'ring-[var(--primary-glow)]');
+                       card.style.borderColor = 'transparent';
+                    } else {
+                        card.classList.remove('ring-2', 'ring-[var(--primary-glow)]');
+                        card.style.borderColor = 'var(--border-color)';
                     }
                 });
             }
-        }
-        
-        // Select anime and show its episodes
-        function selectAnime(name) {
-            selectedAnime = name;
-            const episodes = animeData[name];
-            
-            loadingContent.classList.remove('hidden');
-            selectedAnimeInfo.classList.add('hidden');
-            episodeContainer.classList.add('hidden');
-            playerContainer.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            
-            setTimeout(() => {
-                // Update selected anime info
-                selectedAnimeTitle.textContent = name;
-                episodeCount.textContent = episodes.length;
-                
-                // Render episode list
-                renderEpisodeList(episodes);
-                
-                loadingContent.classList.add('hidden');
-                selectedAnimeInfo.classList.remove('hidden');
-                episodeContainer.classList.remove('hidden');
-            }, 300);
-            
-            // Update active state on anime list
-            document.querySelectorAll('.anime-card').forEach(card => {
-                if (card.dataset.anime === name) {
-                    card.classList.add('ring-2', 'ring-indigo-500');
-                    card.classList.remove('border-[var(--border-color)]');
-                } else {
-                    card.classList.remove('ring-2', 'ring-indigo-500');
-                    card.classList.add('border-[var(--border-color)]');
-                }
-            });
-        }
-        
-        // Render episode list for selected anime
-        function renderEpisodeList(episodes) {
-            // Sort episodes by episode number (handle numeric and special episodes)
-            episodes.sort((a, b) => {
-                const aNum = parseFloat(a.episode) || 0;
-                const bNum = parseFloat(b.episode) || 0;
-                return aNum - bNum;
-            });
-            
-            let html = '';
-            
-            episodes.forEach((ep, index) => {
-                html += `
-                    <div class="episode-item bg-[var(--card-color)] border border-[var(--border-color)] rounded-lg p-3 transition-all cursor-pointer hover:shadow-md"
-                         onclick="playEpisode('${encodeURIComponent(ep.link.replace(/'/g, "\\'"))}', 'Tập ${ep.episode}')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mr-3">
-                                    <span class="text-indigo-600 dark:text-indigo-300 font-medium text-sm">${ep.episode}</span>
-                                </div>
-                                <span class="font-medium">Tập ${ep.episode}</span>
-                            </div>
-                            <i class="fas fa-play text-indigo-500"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            episodeList.innerHTML = html;
-        }
-        
-        // Play selected episode
-        function playEpisode(link, episodeTitle) {
-            emptyState.classList.add('hidden');
-            playerContainer.classList.remove('hidden');
-            
-            // Extract direct video URL from Google Drive if needed
-            let videoUrl = decodeURIComponent(link);
-            
-            // Handle Google Drive links
-            if (videoUrl.includes('drive.google.com')) {
-                const match = videoUrl.match(/\/file\/d\/([^\/]+)/);
-                if (match && match[1]) {
-                    videoUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
-                }
-            }
-            
-            videoPlayer.src = videoUrl;
-            document.querySelector('html, body').scrollTo({
-                top: playerContainer.offsetTop - 20,
-                behavior: 'smooth'
-            });
-        }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchAnimeData();
-            
-            // Set up refresh button
-            refreshBtn.addEventListener('click', fetchAnimeData);
-            
-            // Set up search functionality
-            searchInput.addEventListener('input', (e) => {
-                renderAnimeList(e.target.value);
-            });
-        });
 
-        // Make functions available globally
-        window.selectAnime = selectAnime;
-        window.playEpisode = playEpisode;
+             const playEpisode = (encodedLink) => {
+                const link = decodeURIComponent(encodedLink);
+                 playerContainerEl.style.display = 'block';
+
+                let videoUrl = link.includes('drive.google.com') ? link.replace('/view', '/preview') : link;
+                videoUrl = videoUrl.replace('http://', 'https://');
+                
+                videoPlayerEl.src = videoUrl;
+
+                 const topPos = playerContainerEl.getBoundingClientRect().top + window.pageYOffset - 80;
+                 window.scrollTo({top: topPos, behavior: 'smooth'});
+            };
+            
+            const fetchAndInitialize = async () => {
+                showLoadingState(true, true);
+                try {
+                    const res = await fetch(`${ANIME_DATA_URL}?v=${new Date().getTime()}`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    const text = await res.text();
+                    const parsedData = parseCSV(text);
+                    animeData = parsedData.data;
+                    allAnimeList = parsedData.list;
+
+                    setTimeout(() => { 
+                         renderAnimeList();
+                         if(allAnimeList.length > 0){
+                           selectAnime(allAnimeList[0].name);
+                           emptyStateEl.style.display = 'none';
+                         } else {
+                            showLoadingState(false);
+                         }
+                    }, 500);
+
+                } catch (error) {
+                    console.error("Failed to load data:", error);
+                    animeListContainer.innerHTML = `<div class="p-4 text-center text-red-400">Không thể tải dữ liệu. Hãy thử làm mới.</div>`;
+                    showLoadingState(false);
+                }
+            };
+            
+            const showLoadingState = (isLoading, isInitialLoad=false) => {
+                if(isInitialLoad){
+                     loadingAnimeEl.style.display = isLoading ? 'flex' : 'none';
+                     emptyStateEl.style.display = 'block';
+                     selectedAnimeInfoEl.style.display = 'none';
+                     episodeContainerEl.style.display = 'none';
+                     playerContainerEl.style.display = 'none';
+                     
+                } else if(isLoading) {
+                     loadingContentEl.style.display = 'flex';
+                     emptyStateEl.style.display = 'none';
+                     selectedAnimeInfoEl.style.display = 'none';
+                     episodeContainerEl.style.display = 'none';
+                     playerContainerEl.style.display = 'none';
+                 } else {
+                    loadingContentEl.style.display = 'none';
+                 }
+
+            };
+
+            searchInput.addEventListener('input', e => renderAnimeList(e.target.value.trim()));
+            refreshBtn.addEventListener('click', () => { selectedAnimeName = null; fetchAndInitialize(); });
+            window.selectAnime = selectAnime;
+            window.playEpisode = playEpisode;
+
+            fetchAndInitialize();
+        });
+        
     </script>
 </body>
 </html>
